@@ -81,6 +81,23 @@ func (bc *Blockchain) Print() {
 	fmt.Printf("%s\n", strings.Repeat("=", 25))
 }
 
+type Transaction struct {
+	senderBlockchainAddress    string
+	recipientBlockchainAddress string
+	value                      float32
+}
+
+func NewTransaction(senderBlockchainAddress, recipientBlockchainAdress string, value float32) *Transaction {
+	return &Transaction{senderBlockchainAddress, recipientBlockchainAdress, value}
+}
+
+func (t *Transaction) Print() {
+	fmt.Printf("%s\n", strings.Repeat("-", 40))
+	fmt.Printf("sender_blockchain_address:       %s", t.senderBlockchainAddress)
+	fmt.Printf("recipient_blockchain_address:     %s", t.recipientBlockchainAddress)
+	fmt.Printf("value: %f", t.value)
+}
+
 func main() {
 	bc := NewBlockchain()
 
