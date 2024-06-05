@@ -9,41 +9,40 @@ import (
 )
 
 type Block struct {
-	nonce int
+	nonce        int
 	previousHash [32]byte
-	timeStamp int64
+	timeStamp    int64
 	transactions []string
 }
 
-func NewBlock(nonce int, previousHash [32]byte ) *Block {
+func NewBlock(nonce int, previousHash [32]byte) *Block {
 	return &Block{
-		nonce: nonce,
+		nonce:        nonce,
 		previousHash: previousHash,
-		timeStamp: time.Now().UnixNano(),
+		timeStamp:    time.Now().UnixNano(),
 	}
 }
 
-func(b *Block) hash() [32]byte{
+func (b *Block) hash() [32]byte {
 	m, _ := json.Marshal(b)
-	fmt.Print(m)
 	return sha256.Sum256(m)
 }
 
-func(b* Block) MarshalJSON() ([]byte, error) {
+func (b *Block) MarshalJSON() ([]byte, error) {
 	return json.Marshal(struct {
-		Timestamp int64 `json:"timestamp"`
-		Nonce int `json:"nonce"`
+		Timestamp    int64    `json:"timestamp"`
+		Nonce        int      `json:"nonce"`
 		PreviousHash [32]byte `json:"previousHash"`
-		Transaction []string  `json:"transaction"`
+		Transaction  []string `json:"transaction"`
 	}{
-		Timestamp : b.timeStamp,
-		Nonce: b.nonce,
+		Timestamp:    b.timeStamp,
+		Nonce:        b.nonce,
 		PreviousHash: b.previousHash,
-		Transaction: b.transactions,
+		Transaction:  b.transactions,
 	})
 }
 
-func(b *Block) Print(){
+func (b *Block) Print() {
 	fmt.Printf("timeStamp    %d\n", b.timeStamp)
 	fmt.Printf("previousHash    %x\n", b.previousHash)
 	fmt.Printf("nonce    %d\n", b.nonce)
@@ -52,7 +51,7 @@ func(b *Block) Print(){
 
 type Blockchain struct {
 	transactionPool []string
-	chain []*Block
+	chain           []*Block
 }
 
 func NewBlockchain() *Blockchain {
@@ -60,17 +59,20 @@ func NewBlockchain() *Blockchain {
 	bc := &Blockchain{}
 	bc.CreateBlock(0, b.hash())
 	return bc
-  
+
 }
 
-
-func(bc *Blockchain) CreateBlock(nonce int, previousHash [32]byte) *Block {
+func (bc *Blockchain) CreateBlock(nonce int, previousHash [32]byte) *Block {
 	b := NewBlock(nonce, previousHash)
 	bc.chain = append(bc.chain, b)
 	return b
 }
 
-func(bc *Blockchain) Print(){
+func (bc *Blockchain) LasBlock() *Block {
+	return bc.chain[len(bc.chain)-1]
+}
+
+func (bc *Blockchain) Print() {
 	for i, block := range bc.chain {
 		fmt.Printf("%s chain %d %s\n ", strings.Repeat("=", 25), i, strings.Repeat("=", 25))
 		block.Print()
@@ -79,10 +81,14 @@ func(bc *Blockchain) Print(){
 	fmt.Printf("%s\n", strings.Repeat("=", 25))
 }
 
+func main() {
+	bc := NewBlockchain()
 
+	previousHash := bc.LasBlock().hash()
+	bc.CreateBlock(5, previousHash)
 
-func main(){
-	 NewBlockchain()
-	
-	// bc.Print()
+	previousHash = bc.LasBlock().hash()
+	bc.CreateBlock(5, previousHash)
+
+	bc.Print()
 }
