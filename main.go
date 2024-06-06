@@ -8,10 +8,14 @@ import (
 	"time"
 )
 
+const (
+	MINING_DIFFICULTY = 3
+)
+
 type Block struct {
+	timeStamp    int64
 	nonce        int
 	previousHash [32]byte
-	timeStamp    int64
 	transactions []*Transaction
 }
 
@@ -90,6 +94,33 @@ func (bc *Blockchain) AddTransaction(sender, recipient string, value float32) {
 	bc.transactionPool = append(bc.transactionPool, t)
 }
 
+func (bc *Blockchain) Copytransactions() []*Transaction {
+	transactions := make([]*Transaction, 0)
+	for _, t := range bc.transactionPool {
+		transactions = append(transactions, NewTransaction(t.senderBlockchainAddress, t.recipientBlockchainAddress, t.value))
+
+	}
+	return transactions
+}
+
+func (bc *Blockchain) ValidProof(nonce int, previousHas [32]byte, transactions []*Transaction, difficulty int) bool {
+	zeros := strings.Repeat("0", difficulty)
+	guessBlock := Block{timeStamp: 0, nonce: nonce, previousHash: previousHas, transactions: transactions}
+	guessBlockStr := fmt.Sprintf("%x", guessBlock.hash())
+	return guessBlockStr[:difficulty] == zeros
+
+}
+
+func (bc *Blockchain) ProofOfWork() int {
+	transactions := bc.Copytransactions()
+	previousHas := bc.LasBlock().hash()
+	nonce := 0
+	for !bc.ValidProof(nonce, previousHas, transactions, MINING_DIFFICULTY) {
+		nonce += 1
+	}
+	return nonce
+}
+
 type Transaction struct {
 	senderBlockchainAddress    string
 	recipientBlockchainAddress string
@@ -122,17 +153,18 @@ func (t *Transaction) Print() {
 
 func main() {
 	bc := NewBlockchain()
-	bc.Print()
-
-	bc.AddTransaction("A", "B", 10)
-	bc.CreateBlock(5, bc.LasBlock().hash(),)
-	bc.Print()
-
-	// previousHash := bc.LasBlock().hash()
-	// bc.CreateBlock(5, previousHash)
-
-	// previousHash = bc.LasBlock().hash()
-	// bc.CreateBlock(5, previousHash)
-
 	// bc.Print()
+
+	bc.AddTransaction("A", "B", 1.0)
+	previousHash := bc.LasBlock().hash()
+	nonce := bc.ProofOfWork()
+	bc.CreateBlock(nonce, previousHash)
+	// bc.Print()
+
+	bc.AddTransaction("A", "B", 2.1)
+	bc.AddTransaction("x", "y", 1.1)
+	previousHash = bc.LasBlock().hash()
+	nonce = bc.ProofOfWork()
+	bc.CreateBlock(nonce, previousHash)
+	bc.Print()
 }
