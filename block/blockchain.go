@@ -11,8 +11,8 @@ import (
 
 const (
 	MINING_DIFFICULTY = 3
-	MINING_SENDER = "THE BLOCKCHAIN"
-	MINING_REWARD  = 1.0
+	MINING_SENDER     = "THE BLOCKCHAIN"
+	MINING_REWARD     = 1.0
 )
 
 type Block struct {
@@ -60,8 +60,8 @@ func (b *Block) Print() {
 }
 
 type Blockchain struct {
-	transactionPool []*Transaction
-	chain           []*Block
+	transactionPool   []*Transaction
+	chain             []*Block
 	blockchainAddress string
 }
 
@@ -126,7 +126,7 @@ func (bc *Blockchain) ProofOfWork() int {
 	return nonce
 }
 
-func(bc* Blockchain) Mining() bool {
+func (bc *Blockchain) Mining() bool {
 	bc.AddTransaction(MINING_SENDER, bc.blockchainAddress, MINING_REWARD)
 	nonce := bc.ProofOfWork()
 	previousHash := bc.LasBlock().previousHash
@@ -135,15 +135,15 @@ func(bc* Blockchain) Mining() bool {
 	return true
 }
 
-func(bc *Blockchain) calculateTotalAmount(blockchainAddress string) float32{
+func (bc *Blockchain) calculateTotalAmount(blockchainAddress string) float32 {
 	var totalAmount float32 = 0.0
 	for _, c := range bc.chain {
-		for _, t := range c.transactions {	
+		for _, t := range c.transactions {
 			value := t.value
 			if blockchainAddress == t.recipientBlockchainAddress {
 				totalAmount += value
 			}
-			if blockchainAddress == t.senderBlockchainAddress{
+			if blockchainAddress == t.senderBlockchainAddress {
 				totalAmount -= value
 			}
 		}
@@ -181,5 +181,3 @@ func (t *Transaction) Print() {
 	fmt.Printf("recipient_blockchain_address:     %s\n", t.recipientBlockchainAddress)
 	fmt.Printf("value: %.1f\n", t.value)
 }
-
-
