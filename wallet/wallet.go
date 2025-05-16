@@ -14,8 +14,8 @@ import (
 )
 
 type Wallet struct {
-	privateKey *ecdsa.PrivateKey
-	publicKey  *ecdsa.PublicKey
+	privateKey        *ecdsa.PrivateKey
+	publicKey         *ecdsa.PublicKey
 	blockchainAddress string
 }
 
@@ -25,7 +25,6 @@ func NewWallet() *Wallet {
 	privateKey, _ := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 	w.privateKey = privateKey
 	w.publicKey = &privateKey.PublicKey
-	
 
 	//2. Perform SHA-256
 	h2 := sha256.New()
@@ -55,12 +54,13 @@ func NewWallet() *Wallet {
 
 	//7
 	chsum := digest6[:4]
-	
+
 	//8
 	dc8 := make([]byte, 25)
 	copy(dc8[:21], vd4[:])
 	copy(dc8[21:], chsum)
 
+	// 9
 	address := base58.Encode(dc8)
 	w.blockchainAddress = address
 	return w
@@ -82,23 +82,23 @@ func (w *Wallet) PublicKeyStr() string {
 	return fmt.Sprintf("%x%x", w.publicKey.X.Bytes(), w.publicKey.Y.Bytes())
 }
 
-func(w *Wallet) BlockchainAddress() string {
+func (w *Wallet) BlockchainAddress() string {
 	return w.blockchainAddress
 }
 
 type Transaction struct {
-	senderPrivateKey *ecdsa.PrivateKey
-	senderPublickKey *ecdsa.PublicKey
+	senderPrivateKey      *ecdsa.PrivateKey
+	senderPublickKey      *ecdsa.PublicKey
 	sendBlockchainAddress string
 	recepientBlockAddress string
-	value float32
+	value                 float32
 }
 
 func NewTransaction(
-	privateKey *ecdsa.PrivateKey, 
-	publicKey *ecdsa.PublicKey, 
-	sender string, 
-	recipient string, 
+	privateKey *ecdsa.PrivateKey,
+	publicKey *ecdsa.PublicKey,
+	sender string,
+	recipient string,
 	value float32,
 ) *Transaction {
 	return &Transaction{
@@ -110,22 +110,21 @@ func NewTransaction(
 	}
 }
 
-func( t *Transaction) GenerateSignature() *utils.Signature {
+func (t *Transaction) GenerateSignature() *utils.Signature {
 	m, _ := json.Marshal(t)
 	h := sha256.Sum256([]byte(m))
-	r, s , _:= ecdsa.Sign(rand.Reader, t.senderPrivateKey, h[:])
+	r, s, _ := ecdsa.Sign(rand.Reader, t.senderPrivateKey, h[:])
 	return &utils.Signature{R: r, S: s}
 }
 
-func(t *Transaction) MarshaJSON()([]byte, error){
+func (t *Transaction) MarshaJSON() ([]byte, error) {
 	return json.Marshal(struct {
-		Sender string `json:"sender_blockchain_address"`
-		Recipient string `json:"recipient_blockchain_address"`
-		Value float32 `json:"value"`
+		Sender    string  `json:"sender_blockchain_address"`
+		Recipient string  `json:"recipient_blockchain_address"`
+		Value     float32 `json:"value"`
 	}{
-		Sender: t.sendBlockchainAddress,
+		Sender:    t.sendBlockchainAddress,
 		Recipient: t.recepientBlockAddress,
-		Value: t.value,
+		Value:     t.value,
 	})
 }
-
