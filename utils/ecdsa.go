@@ -6,10 +6,10 @@ import (
 )
 
 type Signature struct {
-	R *big.Int
-	S *big.Int
+	R *big.Int // public key x coordinate
+	S *big.Int // the signature
 }
 
-func(s *Signature) String() string {
+func (s *Signature) String() string {
 	return fmt.Sprintf("%x%x", s.R, s.S)
 }

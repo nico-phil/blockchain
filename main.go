@@ -1,47 +1,35 @@
 package main
 
-import (
-	"github.com/Nico2220/blockchain/block"
-)
-
 func main() {
-	// w := wallet.NewWallet()
-	// fmt.Println(w.PrivateKeyStr())
-	// fmt.Println(w.PublicKeyStr())
+	// walletM := wallet.NewWallet()
+	// walletA := wallet.NewWallet()
+	// walletB := wallet.NewWallet()
 
-	// fmt.Println(w.BlockchainAddress())
+	// t := wallet.NewTransaction(walletA.PrivateKey(), walletA.PublicKey(), walletA.BlockchainAddress(), walletB.BlockchainAddress(), 1.0)
 
-	// t := wallet.NewTransaction(w.PrivateKey(), w.PublicKey(), w.BlockchainAddress(), "B", 1.0)
-	// fmt.Printf("signature %s\n", t.GenerateSignature())
+	// blockchain := block.NewBlockchain(walletM.BlockchainAddress())
 
-	// myBlockchainAddress := "my_blockchain_address"
-	// blockchain := block.NewBlockchain(myBlockchainAddress)
+	// isAdded := blockchain.AddTransaction(walletA.BlockchainAddress(), walletB.BlockchainAddress(), 1.0, walletA.PublicKey(), t.GenerateSignature())
 
-
-	// blockchain.AddTransaction("A", "B", 1.0)
-	// blockchain.Mining()
-	
-
-	// blockchain.AddTransaction("C", "D", 2.0)
-	// blockchain.AddTransaction("X", "X", 3.0)
+	// fmt.Println("idAdded", isAdded)
 	// blockchain.Mining()
 
 	// blockchain.Print()
 
-	// fmt.Printf("my %.1f\n", blockchain.CalculateTotalAmount(myBlockchainAddress))
-	// fmt.Printf("C %.1f\n", blockchain.CalculateTotalAmount("C"))
-	// fmt.Printf("D %.1f\n", blockchain.CalculateTotalAmount("D"))
+	// // myBlockchainAddress := "my_blockchain_address"
+	// // blockchain := block.NewBlockchain(myBlockchainAddress)
 
-	
-	blockChain := block.NewBlockchain("my_address")
+	// // blockchain.AddTransaction("A", "B", 1.0)
+	// // blockchain.Mining()
 
-	blockChain.AddTransaction("A", "B", 1.0, nil, nil)
-	blockChain.Mining()
+	// // blockchain.AddTransaction("C", "D", 2.0)
+	// // blockchain.AddTransaction("X", "X", 3.0)
+	// // blockchain.Mining()
 
-	
+	// // blockchain.Print()
 
-	blockChain.Print()
-
-
+	// fmt.Printf("my %.1f\n", blockchain.CalculateTotalAmount(walletA.BlockchainAddress()))
+	// fmt.Printf("A %.1f\n", blockchain.CalculateTotalAmount("A"))
+	// fmt.Printf("B %.1f\n", blockchain.CalculateTotalAmount("B"))
 
 }
