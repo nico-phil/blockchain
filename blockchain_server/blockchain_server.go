@@ -54,10 +54,10 @@ func(bcs *BlockchainServer) GetChainHandler(w http.ResponseWriter, r *http.Reque
 	w.Write(js)
 }
 
-func (bsc *BlockchainServer) Run(){
+func (bsc *BlockchainServer) Run() error{
 	router := http.NewServeMux()
 	// router.HandleFunc("/", HelloWorld)
 
 	router.HandleFunc("/chain", bsc.GetChainHandler)
-	http.ListenAndServe(":3000", router)
+	return http.ListenAndServe(fmt.Sprintf(":%d", bsc.port), router)
 }
