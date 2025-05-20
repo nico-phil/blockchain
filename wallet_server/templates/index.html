@@ -6,6 +6,80 @@
     <title>Wallet</title>
   </head>
   <body>
-    Wallet
+    <div>
+      <h1>Wallet</h1>
+      <div id="wallet_amount">0</div>
+      <button id="reload_wallet">Reload Wallet</button>
+
+      <p>Public Key</p>
+      <textarea id="public_key" rows="2" cols="100"></textarea>
+
+      <p>Private Key</p>
+      <textarea id="private_key" rows="1" cols="100"></textarea>
+
+      <p>Blockchain Address</p>
+      <textarea id="blockchain_address" rows="1" cols="100"></textarea>
+    </div>
+
+    <div>
+      <h1>Send Money</h1>
+      <div>
+        Address:
+        <input id="recipient_blockchain_address" size="100" type="text" />
+        <br />
+        Amount: <input id="send_amount" type="text" />
+        <br />
+        <button id="send_money_button">Send</button>
+      </div>
+    </div>
+
+    <script>
+      const publicKeyEl = document.getElementById("public_key");
+      const privateKeyEl = document.getElementById("private_key");
+      const blockChainAddressEl = document.getElementById("blockchain_address");
+
+      async function createWallet() {
+        console.log("hello");
+        const url = "/wallet";
+        const response = await fetch(url, {
+          method: "POST",
+        });
+
+        const jsonResponse = await response.json();
+
+        publicKeyEl.innerText = jsonResponse.public_key;
+        privateKeyEl.innerText = jsonResponse.private_key;
+        blockChainAddressEl.innerText = jsonResponse.blockchain_address;
+      }
+
+      createWallet();
+
+      const sendMoneyButton = document.getElementById("send_money_button");
+      sendMoneyButton.addEventListener("click", sendMoney);
+
+      async function sendMoney() {
+        const receipentBlockchainAddress = document.getElementById(
+          "recipient_blockchain_address"
+        );
+
+        const amountEl = document.getElementById("send_amount");
+
+        const data = {
+          sender_private_key: privateKeyEl.value,
+          sender_publick_key: publicKeyEl.value,
+          sender_blockchain_ddress: blockChainAddressEl.value,
+          recepient_block_Address: receipentBlockchainAddress.value,
+          value: amountEl.value,
+        };
+
+        const response = await fetch("/wallet", {
+          method: "post",
+          body: JSON.stringify(data),
+        });
+
+        const responseJson = await response.json();
+        console.log("responseJson", responseJson);
+      }
+    </script>
   </body>
 </html>
