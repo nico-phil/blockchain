@@ -69,16 +69,16 @@
           sender_publick_key: publicKeyEl.value,
           sender_blockchain_ddress: blockChainAddressEl.value,
           recepient_block_Address: receipentBlockchainAddress.value,
-          value: amountEl.value,
+          value: Number(amountEl.value),
         };
 
-        const response = await fetch("/wallet", {
+        const response = await fetch("/transactions", {
           method: "post",
           body: JSON.stringify(data),
         });
 
         const responseJson = await response.json();
-        console.log("responseJson", responseJson);
+        console.log("responseJson", data);
       }
     </script>
   </body>

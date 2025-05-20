@@ -142,3 +142,12 @@ func (t *Transaction) MarshaJSON() ([]byte, error) {
 		Value:     t.value,
 	})
 }
+
+
+type TransactionRequest struct {
+	SenderPrivateKey  *string   `json:"sender_private_key"`   
+	SenderPublickKey     *string `json:"sender_public_key"`
+	SendBlockchainAddress *string `json:"sender_blockchain_address"`
+	RecepientBlockAddress *string `json:"recipient_block_address"`
+	Value   *string  `json:"value"`
+}

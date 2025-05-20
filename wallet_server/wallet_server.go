@@ -52,11 +52,25 @@ func(ws *WalletServer) CreateWallet(w http.ResponseWriter, r *http.Request){
 	w.Write(m)
 }
 
+func(ws *WalletServer) CreateTransaction(w http.ResponseWriter, r *http.Request){
+	var input wallet.TransactionRequest 
+	err := json.NewDecoder(r.Body).Decode(&input)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("trasaction failed"))
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("hello stansactipn"))
+}
+
 
 func (ws *WalletServer) Run() error{
 	router := http.NewServeMux()
 	router.HandleFunc("/",  ws.Index)
 
-	router.HandleFunc("/wallet",ws.CreateWallet)
+	router.HandleFunc("POST /transactions", ws.CreateTransaction)
+	router.HandleFunc("POST /wallet",ws.CreateWallet)
 	return http.ListenAndServe(fmt.Sprintf(":%d", ws.port), router)
 }
