@@ -1,9 +1,12 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"html/template"
 	"net/http"
+
+	"github.com/Nico2220/blockchain/wallet"
 )
 
 type WalletServer struct {
@@ -30,13 +33,30 @@ func(ws *WalletServer) Index(w http.ResponseWriter, r *http.Request){
 	}
 	t.Execute(w, "")
 
-} 
+}
+
+type wrapper map[string]any
+
+func(ws *WalletServer) CreateWallet(w http.ResponseWriter, r *http.Request){
+	myWallet:= wallet.NewWallet()
+	m, err:= myWallet.MarshalJSON()
+	w.Header().Set("Content-Type", "application/json")
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		
+		e := wrapper{"error": "error marshaling"}
+		me, _ := json.Marshal(e)
+		w.Write(me)
+	}
+	w.WriteHeader(http.StatusOK)
+	w.Write(m)
+}
 
 
 func (ws *WalletServer) Run() error{
 	router := http.NewServeMux()
-	// router.HandleFunc("/", HelloWorld)
+	router.HandleFunc("/",  ws.Index)
 
-	router.HandleFunc("/wallet", ws.Index)
+	router.HandleFunc("/wallet",ws.CreateWallet)
 	return http.ListenAndServe(fmt.Sprintf(":%d", ws.port), router)
 }
