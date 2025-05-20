@@ -60,6 +60,11 @@ func(ws *WalletServer) CreateTransaction(w http.ResponseWriter, r *http.Request)
 		w.Write([]byte("trasaction failed"))
 	}
 
+	// validate transaction
+	if !input.ValidTransaction() {
+		w.WriteHeader(http.StatusUnprocessableEntity)
+		w.Write([]byte("StatusUnprocessableEntity"))
+	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("hello stansactipn"))
