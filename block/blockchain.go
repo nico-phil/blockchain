@@ -78,6 +78,10 @@ func NewBlockchain(blockchainAddress string, port int) *Blockchain {
 	return bc
 }
 
+func (bc *Blockchain) TransactionPool() []*Transaction{
+	return bc.transactionPool
+}
+
 func (bc *Blockchain) MarsalJSON() ([]byte, error) {
 	return json.Marshal(struct {
 		Blocks []*Block `json:"chains"`
@@ -104,6 +108,14 @@ func (bc *Blockchain) Print() {
 	}
 
 	fmt.Printf("%s\n", strings.Repeat("=", 25))
+}
+
+func (bc *Blockchain) CreateTransaction(sender, recipient string, value float32, senderPublicKey *ecdsa.PublicKey, s *utils.Signature) bool {
+	isTransacted := bc.AddTransaction(sender, recipient, value, senderPublicKey, s)
+
+	// Todo
+
+	return isTransacted
 }
 
 func (bc *Blockchain) AddTransaction(sender, recipient string, value float32, senderPublicKey *ecdsa.PublicKey, s *utils.Signature) bool {
@@ -234,10 +246,27 @@ type TransactionRequest struct {
 	Signature                *string  `json:"signature"`
 }
 
-func (t *TransactionRequest) Validate() bool {
-	if t.SenderBlockchainAddress == nil || t.RecipientBlochainAddress == nil ||
-		t.SenderPublicKey == nil || t.Value == nil || t.Signature == nil {
-		return false
+func (t *TransactionRequest) Validate() map[string]string{
+	mapError := map[string]string{}
+	if t.SenderBlockchainAddress == nil {
+		mapError["sender_blockchain_address"] = "missing value"
 	}
-	return false
+	
+	if t.RecipientBlochainAddress == nil{
+		mapError["recipient_blockchain_address"] = "missing value"
+	}
+	
+	
+	if t.SenderPublicKey == nil {
+		mapError["sender_public_key"] = "missing value"
+	}
+	
+	if t.Value == nil {
+		mapError["value"] = "missing value"
+	}
+	
+	if t.Signature == nil {
+		mapError["signature"] = "missing value"
+	}
+	return mapError
 }

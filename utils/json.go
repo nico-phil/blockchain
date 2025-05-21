@@ -5,13 +5,13 @@ import (
 	"net/http"
 )
 
-func ReadJSON(r *http.Request, dst any ) error{
+func ReadJSON(r *http.Request, dst any) error {
 	decoder := json.NewDecoder(r.Body)
 	err := decoder.Decode(&dst)
 	if err != nil {
 		return err
 	}
-	
+
 	return nil
 }
 
