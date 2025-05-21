@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"html/template"
@@ -25,7 +26,7 @@ func (ws *WalletServer) Port() int {
 	return ws.port
 }
 
-func (ws *WalletServer) GateWayString() string {
+func (ws *WalletServer) GateWay() string {
 	return ws.gateway
 }
 
@@ -89,12 +90,25 @@ func (ws *WalletServer) CreateTransaction(w http.ResponseWriter, r *http.Request
 		Signature:                &signatureStr,
 	}
 
-	fmt.Println("block_transaction:", bt)
+	m, _ := json.Marshal(bt)
+	buf := bytes.NewBuffer(m)
 
-	utils.WriteJSON(w, http.StatusOK, wrapper{"transaction": input})
+	fmt.Println("gateway:" ,ws.GateWay())
+	rep, err := http.Post(ws.GateWay()+"/transactions", "application/json", buf)
+	if err != nil {
+		utils.WriteJSON(w, http.StatusBadRequest, wrapper{"error": err.Error()})
+	}
+	if rep.StatusCode != http.StatusCreated {
+		utils.WriteJSON(w, http.StatusBadRequest, wrapper{"error": "transaction failed :(",})
+		return
+	}
+
+	utils.WriteJSON(w, http.StatusCreated, wrapper{"message": "success"})
+
 }
 
 func (ws *WalletServer) Run() error {
+	fmt.Println("wallet_server running on:", ws.port)
 	router := http.NewServeMux()
 	router.HandleFunc("/", ws.Index)
 
