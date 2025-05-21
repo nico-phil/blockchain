@@ -108,13 +108,27 @@ func(bcs *BlockchainServer) GetTransactionHandler(w http.ResponseWriter, r *http
 	utils.WriteJSON(w, http.StatusOK, Wrapper{"transaction": t.Transactions, "length": t.Length})
 }
 
+func(bcs *BlockchainServer) Mine(w http.ResponseWriter, r *http.Request){
+	bc := bcs.GetBlockchain()
+	isMined := bc.Mining()
+	
+	if !isMined {
+		utils.WriteJSON(w, http.StatusBadRequest, Wrapper{"error": "mine failed"})
+		return
+	}
+
+	utils.WriteJSON(w, http.StatusBadRequest, Wrapper{"message": "mine succed"})
+}
+
 func (bsc *BlockchainServer) Run() error {
 	fmt.Println("blockchain_server running on:", bsc.port)
 	router := http.NewServeMux()
 	// router.HandleFunc("/", HelloWorld)
 
+
 	router.HandleFunc("/transactions", bsc.GetTransactionHandler)
 	router.HandleFunc("POST /transactions", bsc.TransactionHandler)
 	router.HandleFunc("/chain", bsc.GetChainHandler)
+	router.HandleFunc("/mine", bsc.Mine)
 	return http.ListenAndServe(fmt.Sprintf(":%d", bsc.port), router)
 }
