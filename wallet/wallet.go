@@ -66,8 +66,6 @@ func NewWallet() *Wallet {
 	return w
 }
 
-
-
 func (w *Wallet) PrivateKey() *ecdsa.PrivateKey {
 	return w.privateKey
 }
@@ -81,31 +79,31 @@ func (w *Wallet) PublicKey() *ecdsa.PublicKey {
 }
 
 func (w *Wallet) PublicKeyStr() string {
-	return fmt.Sprintf("%x%x", w.publicKey.X.Bytes(), w.publicKey.Y.Bytes())
+	return fmt.Sprintf("%064x%064x", w.publicKey.X.Bytes(), w.publicKey.Y.Bytes())
 }
 
 func (w *Wallet) BlockchainAddress() string {
 	return w.blockchainAddress
 }
 
-func(w *Wallet) MarshalJSON()([]byte, error){
-	return json.Marshal(struct{
-		PrivateKey string `json:"private_key"`
-		PublicKey string `json:"public_key"`
+func (w *Wallet) MarshalJSON() ([]byte, error) {
+	return json.Marshal(struct {
+		PrivateKey        string `json:"private_key"`
+		PublicKey         string `json:"public_key"`
 		BlockchainAddress string `json:"blockchain_address"`
 	}{
-		PrivateKey: w.PrivateKeyStr(),
-		PublicKey: w.PublicKeyStr(),
+		PrivateKey:        w.PrivateKeyStr(),
+		PublicKey:         w.PublicKeyStr(),
 		BlockchainAddress: w.BlockchainAddress(),
 	})
 }
 
 type Transaction struct {
-	senderPrivateKey      *ecdsa.PrivateKey
-	senderPublickKey      *ecdsa.PublicKey
-	sendBlockchainAddress string
-	recepientBlockAddress string
-	value                 float32
+	senderPrivateKey           *ecdsa.PrivateKey
+	senderPublickKey           *ecdsa.PublicKey
+	sendBlockchainAddress      string
+	recepientBlockchainAddress string
+	value                      float32
 }
 
 func NewTransaction(
@@ -125,7 +123,7 @@ func NewTransaction(
 }
 
 func (t *Transaction) GenerateSignature() *utils.Signature {
-	m, _ := json.Marshal(t)
+	m, _ := t.MarshaJSON()
 	h := sha256.Sum256([]byte(m))
 	r, s, _ := ecdsa.Sign(rand.Reader, t.senderPrivateKey, h[:])
 	return &utils.Signature{R: r, S: s}
@@ -138,25 +136,24 @@ func (t *Transaction) MarshaJSON() ([]byte, error) {
 		Value     float32 `json:"value"`
 	}{
 		Sender:    t.sendBlockchainAddress,
-		Recipient: t.recepientBlockAddress,
+		Recipient: t.recepientBlockchainAddress,
 		Value:     t.value,
 	})
 }
 
-
 type TransactionRequest struct {
-	SenderPrivateKey  *string   `json:"sender_private_key"`   
-	SenderPublickKey     *string `json:"sender_public_key"`
-	SendBlockchainAddress *string `json:"sender_blockchain_address"`
-	RecepientBlockAddress *string `json:"recipient_block_address"`
-	Value   *string  `json:"value"`
+	SenderPrivateKey           *string `json:"sender_private_key"`
+	SenderPublickKey           *string `json:"sender_public_key"`
+	SenderBlockchainAddress    *string `json:"sender_blockchain_address"`
+	RecepientBlockchainAddress *string `json:"recipient_blockchain_address"`
+	Value                      *string `json:"value"`
 }
 
-func(tr *TransactionRequest) ValidTransaction()bool {
+func (tr *TransactionRequest) ValidTransaction() bool {
 	if tr.SenderPrivateKey == nil || tr.SenderPublickKey == nil ||
-		tr.SendBlockchainAddress == nil || tr.RecepientBlockAddress == nil ||
+		tr.SenderBlockchainAddress == nil || tr.RecepientBlockchainAddress == nil ||
 		tr.Value == nil {
-			return false
-		}
+		return false
+	}
 	return true
 }
