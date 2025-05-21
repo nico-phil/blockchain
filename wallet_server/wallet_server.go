@@ -93,13 +93,13 @@ func (ws *WalletServer) CreateTransaction(w http.ResponseWriter, r *http.Request
 	m, _ := json.Marshal(bt)
 	buf := bytes.NewBuffer(m)
 
-	fmt.Println("gateway:" ,ws.GateWay())
+	fmt.Println("gateway:", ws.GateWay())
 	rep, err := http.Post(ws.GateWay()+"/transactions", "application/json", buf)
 	if err != nil {
 		utils.WriteJSON(w, http.StatusBadRequest, wrapper{"error": err.Error()})
 	}
 	if rep.StatusCode != http.StatusCreated {
-		utils.WriteJSON(w, http.StatusBadRequest, wrapper{"error": "transaction failed :(",})
+		utils.WriteJSON(w, http.StatusBadRequest, wrapper{"error": "transaction failed :("})
 		return
 	}
 

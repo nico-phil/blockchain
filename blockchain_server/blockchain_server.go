@@ -57,18 +57,55 @@ func (bcs *BlockchainServer) GetChainHandler(w http.ResponseWriter, r *http.Requ
 	w.Write(js)
 }
 
-func(bcs *BlockchainServer) TransactionHandler(w http.ResponseWriter, r *http.Request){
-	fmt.Println("transactio from blochain server")
+func (bcs *BlockchainServer) TransactionHandler(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("transaction from blochain server")
 	var t block.TransactionRequest
 	err := utils.ReadJSON(r, &t)
 	if err != nil {
 		utils.WriteJSON(w, http.StatusBadRequest, Wrapper{"error": err.Error()})
-		return 
+		return
 	}
 
-	fmt.Println(t)
+	if mapError :=  t.Validate(); len(mapError) > 0 {
+		fmt.Println("not validate")
+		utils.WriteJSON(w, http.StatusUnprocessableEntity, Wrapper{"error": mapError})
+		return
+	}
+
+	fmt.Println("tr_after_validate", *t.RecipientBlochainAddress)
+
+
+
+	publicKey := utils.PublickKeyFromString(*t.SenderPublicKey)
+	signature := utils.SignatureFromString(*t.Signature)
+
+	bc := bcs.GetBlockchain()
+
+	isCreated := bc.CreateTransaction(*t.SenderBlockchainAddress, *t.RecipientBlochainAddress,
+		*t.Value, publicKey, signature)
+	fmt.Println("iscreated:", isCreated)
+
+	if !isCreated {
+		utils.WriteJSON(w, http.StatusBadRequest, Wrapper{"transaction": "transaction is not created"})
+		return
+	}
 
 	utils.WriteJSON(w, http.StatusCreated, Wrapper{"transaction": t})
+}
+
+func(bcs *BlockchainServer) GetTransactionHandler(w http.ResponseWriter, r *http.Request){
+	bc := bcs.GetBlockchain()
+	transactions := bc.TransactionPool()
+
+	var t struct {
+		Transactions []*block.Transaction `json:"transactions"`
+		Length int`json:"length"`
+	}
+
+	t.Transactions = transactions
+	t.Length = len(transactions)
+
+	utils.WriteJSON(w, http.StatusOK, Wrapper{"transaction": t.Transactions, "length": t.Length})
 }
 
 func (bsc *BlockchainServer) Run() error {
@@ -76,6 +113,7 @@ func (bsc *BlockchainServer) Run() error {
 	router := http.NewServeMux()
 	// router.HandleFunc("/", HelloWorld)
 
+	router.HandleFunc("/transactions", bsc.GetTransactionHandler)
 	router.HandleFunc("POST /transactions", bsc.TransactionHandler)
 	router.HandleFunc("/chain", bsc.GetChainHandler)
 	return http.ListenAndServe(fmt.Sprintf(":%d", bsc.port), router)
