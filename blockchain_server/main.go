@@ -6,18 +6,18 @@ import (
 	"strconv"
 )
 
-func init(){
+func init() {
 
 }
 
-func main(){
+func main() {
 	port, _ := strconv.Atoi(os.Getenv("port"))
 
 	app := NewBlockchainServer(port)
-	
+
 	err := app.Run()
-	if err != nil{
+	if err != nil {
 		log.Fatal("error starting server", err)
 	}
-	
+
 }

@@ -15,16 +15,16 @@ type BlockchainServer struct {
 	port int
 }
 
-func NewBlockchainServer(port int) *BlockchainServer{
+func NewBlockchainServer(port int) *BlockchainServer {
 	return &BlockchainServer{port: port}
 }
 
-func(bcs *BlockchainServer) Port() int{
+func (bcs *BlockchainServer) Port() int {
 	return bcs.port
 }
 
 func (bcs *BlockchainServer) GetBlockchain() *block.Blockchain {
-	bc, ok := cache["blockchain"] 
+	bc, ok := cache["blockchain"]
 	if !ok {
 		minerWallet := wallet.NewWallet()
 		bc = block.NewBlockchain(minerWallet.BlockchainAddress(), bcs.Port())
@@ -37,11 +37,11 @@ func (bcs *BlockchainServer) GetBlockchain() *block.Blockchain {
 	return bc
 }
 
-func HelloWorld(w http.ResponseWriter, r *http.Request){
+func HelloWorld(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintln(w, "hello world")
 }
 
-func(bcs *BlockchainServer) GetChainHandler(w http.ResponseWriter, r *http.Request){
+func (bcs *BlockchainServer) GetChainHandler(w http.ResponseWriter, r *http.Request) {
 	bc := bcs.GetBlockchain()
 	js, err := bc.MarsalJSON()
 	if err != nil {
@@ -54,7 +54,7 @@ func(bcs *BlockchainServer) GetChainHandler(w http.ResponseWriter, r *http.Reque
 	w.Write(js)
 }
 
-func (bsc *BlockchainServer) Run() error{
+func (bsc *BlockchainServer) Run() error {
 	router := http.NewServeMux()
 	// router.HandleFunc("/", HelloWorld)
 
