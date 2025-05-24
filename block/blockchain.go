@@ -262,25 +262,26 @@ type TransactionRequest struct {
 }
 
 func (t *TransactionRequest) Validate() map[string]string {
+	errorText := "missing value"
 	mapError := map[string]string{}
 	if t.SenderBlockchainAddress == nil {
-		mapError["sender_blockchain_address"] = "missing value"
+		mapError["sender_blockchain_address"] = errorText
 	}
 
 	if t.RecipientBlochainAddress == nil {
-		mapError["recipient_blockchain_address"] = "missing value"
+		mapError["recipient_blockchain_address"] = errorText
 	}
 
 	if t.SenderPublicKey == nil {
-		mapError["sender_public_key"] = "missing value"
+		mapError["sender_public_key"] = errorText
 	}
 
 	if t.Value == nil {
-		mapError["value"] = "missing value"
+		mapError["value"] = errorText
 	}
 
 	if t.Signature == nil {
-		mapError["signature"] = "missing value"
+		mapError["signature"] = errorText
 	}
 	return mapError
 }
