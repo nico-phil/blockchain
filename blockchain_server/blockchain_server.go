@@ -66,15 +66,13 @@ func (bcs *BlockchainServer) TransactionHandler(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	if mapError :=  t.Validate(); len(mapError) > 0 {
+	if mapError := t.Validate(); len(mapError) > 0 {
 		fmt.Println("not validate")
 		utils.WriteJSON(w, http.StatusUnprocessableEntity, Wrapper{"error": mapError})
 		return
 	}
 
 	fmt.Println("tr_after_validate", *t.RecipientBlochainAddress)
-
-
 
 	publicKey := utils.PublickKeyFromString(*t.SenderPublicKey)
 	signature := utils.SignatureFromString(*t.Signature)
@@ -93,13 +91,13 @@ func (bcs *BlockchainServer) TransactionHandler(w http.ResponseWriter, r *http.R
 	utils.WriteJSON(w, http.StatusCreated, Wrapper{"transaction": t})
 }
 
-func(bcs *BlockchainServer) GetTransactionHandler(w http.ResponseWriter, r *http.Request){
+func (bcs *BlockchainServer) GetTransactionHandler(w http.ResponseWriter, r *http.Request) {
 	bc := bcs.GetBlockchain()
 	transactions := bc.TransactionPool()
 
 	var t struct {
 		Transactions []*block.Transaction `json:"transactions"`
-		Length int`json:"length"`
+		Length       int                  `json:"length"`
 	}
 
 	t.Transactions = transactions
@@ -108,10 +106,10 @@ func(bcs *BlockchainServer) GetTransactionHandler(w http.ResponseWriter, r *http
 	utils.WriteJSON(w, http.StatusOK, Wrapper{"transaction": t.Transactions, "length": t.Length})
 }
 
-func(bcs *BlockchainServer) Mine(w http.ResponseWriter, r *http.Request){
+func (bcs *BlockchainServer) Mine(w http.ResponseWriter, r *http.Request) {
 	bc := bcs.GetBlockchain()
 	isMined := bc.Mining()
-	
+
 	if !isMined {
 		utils.WriteJSON(w, http.StatusBadRequest, Wrapper{"error": "mine failed"})
 		return
@@ -120,15 +118,32 @@ func(bcs *BlockchainServer) Mine(w http.ResponseWriter, r *http.Request){
 	utils.WriteJSON(w, http.StatusBadRequest, Wrapper{"message": "mine succed"})
 }
 
+func (bcs *BlockchainServer) StartMining(w http.ResponseWriter, r *http.Request) {
+	bc := bcs.GetBlockchain()
+	bc.StartMining()
+
+	utils.WriteJSON(w, http.StatusBadRequest, Wrapper{"message": "start mining"})
+}
+
+func(bcs *BlockchainServer) GetAmount(w http.ResponseWriter, r *http.Request) {
+	bc := bcs.GetBlockchain()
+	blockchainAddress := r.URL.Query().Get("blockchain_address")
+
+	amount := bc.CalculateTotalAmount(blockchainAddress)
+
+	utils.WriteJSON(w, http.StatusOK, Wrapper{"amount": amount})
+}
+
 func (bsc *BlockchainServer) Run() error {
 	fmt.Println("blockchain_server running on:", bsc.port)
 	router := http.NewServeMux()
 	// router.HandleFunc("/", HelloWorld)
 
-
 	router.HandleFunc("/transactions", bsc.GetTransactionHandler)
 	router.HandleFunc("POST /transactions", bsc.TransactionHandler)
 	router.HandleFunc("/chain", bsc.GetChainHandler)
 	router.HandleFunc("/mine", bsc.Mine)
+	router.HandleFunc("/mine/start", bsc.StartMining)
+	router.HandleFunc("/amoun", bsc.GetAmount)
 	return http.ListenAndServe(fmt.Sprintf(":%d", bsc.port), router)
 }

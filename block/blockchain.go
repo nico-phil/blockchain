@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/Nico2220/blockchain/utils"
@@ -16,6 +17,7 @@ const (
 	MINING_DIFFICULTY = 3
 	MINING_SENDER     = "THE BLOCKCHAIN"
 	MINING_REWARD     = 1.0
+	MINING_TIMER      = 20
 )
 
 type Block struct {
@@ -67,6 +69,7 @@ type Blockchain struct {
 	chain             []*Block
 	blockchainAddress string
 	port              int
+	mu                sync.Mutex
 }
 
 func NewBlockchain(blockchainAddress string, port int) *Blockchain {
@@ -78,7 +81,7 @@ func NewBlockchain(blockchainAddress string, port int) *Blockchain {
 	return bc
 }
 
-func (bc *Blockchain) TransactionPool() []*Transaction{
+func (bc *Blockchain) TransactionPool() []*Transaction {
 	return bc.transactionPool
 }
 
@@ -179,12 +182,24 @@ func (bc *Blockchain) ProofOfWork() int {
 }
 
 func (bc *Blockchain) Mining() bool {
+	bc.mu.Lock()
+	defer bc.mu.Unlock()
+
+	if len(bc.transactionPool) == 0 {
+		return false
+	}
+
 	bc.AddTransaction(MINING_SENDER, bc.blockchainAddress, MINING_REWARD, nil, nil)
 	nonce := bc.ProofOfWork()
 	previousHash := bc.LasBlock().previousHash
 	bc.CreateBlock(nonce, previousHash)
 	log.Println("action=MINING", "status=success")
 	return true
+}
+
+func (bc *Blockchain) StartMining() {
+	bc.Mining()
+	_ = time.AfterFunc(time.Second*MINING_TIMER, bc.StartMining)
 }
 
 func (bc *Blockchain) CalculateTotalAmount(blockchainAddress string) float32 {
@@ -246,25 +261,24 @@ type TransactionRequest struct {
 	Signature                *string  `json:"signature"`
 }
 
-func (t *TransactionRequest) Validate() map[string]string{
+func (t *TransactionRequest) Validate() map[string]string {
 	mapError := map[string]string{}
 	if t.SenderBlockchainAddress == nil {
 		mapError["sender_blockchain_address"] = "missing value"
 	}
-	
-	if t.RecipientBlochainAddress == nil{
+
+	if t.RecipientBlochainAddress == nil {
 		mapError["recipient_blockchain_address"] = "missing value"
 	}
-	
-	
+
 	if t.SenderPublicKey == nil {
 		mapError["sender_public_key"] = "missing value"
 	}
-	
+
 	if t.Value == nil {
 		mapError["value"] = "missing value"
 	}
-	
+
 	if t.Signature == nil {
 		mapError["signature"] = "missing value"
 	}
