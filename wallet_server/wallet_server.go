@@ -2,9 +2,11 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"html/template"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -107,6 +109,43 @@ func (ws *WalletServer) CreateTransaction(w http.ResponseWriter, r *http.Request
 
 }
 
+func(ws *WalletServer) GetAmount(w http.ResponseWriter, r *http.Request){
+	
+	client := http.Client{}
+	endpoint := fmt.Sprintf("%s/amount", ws.gateway)
+	
+	blockchainAddress := r.URL.Query().Get("blockchain_address")
+
+	ctx := context.Background()
+	req, _ := http.NewRequestWithContext(ctx, http.MethodGet, endpoint, nil)
+	
+	q := req.URL.Query()
+	q.Add("blockchain_address", blockchainAddress)
+	req.URL.RawQuery = q.Encode()
+
+	response, err := client.Do(req)
+	if err != nil {
+		log.Printf("error: %v", err)
+		utils.WriteJSON(w, http.StatusBadRequest, wrapper{"error": "cannot get amount"})
+		return
+	}
+
+	if response.StatusCode != http.StatusOK {
+		utils.WriteJSON(w, response.StatusCode, wrapper{"error": "cannot get amount"})
+		return 
+	}
+
+	var a block.AmountResponse
+	err = json.NewDecoder(response.Body).Decode(&a)
+	if err != nil {
+		utils.WriteJSON(w, http.StatusBadRequest, wrapper{"error": "cannot decode amount reponse"})
+		return
+	}
+
+	utils.WriteJSON(w, http.StatusOK, wrapper{"amount": a.Amount})
+
+}
+
 func (ws *WalletServer) Run() error {
 	fmt.Println("wallet_server running on:", ws.port)
 	router := http.NewServeMux()
@@ -114,5 +153,6 @@ func (ws *WalletServer) Run() error {
 
 	router.HandleFunc("POST /transactions", ws.CreateTransaction)
 	router.HandleFunc("POST /wallet", ws.CreateWallet)
+	router.HandleFunc("GET /wallet/amount", ws.GetAmount)
 	return http.ListenAndServe(fmt.Sprintf(":%d", ws.port), router)
 }
