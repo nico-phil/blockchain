@@ -128,7 +128,10 @@ func (bcs *BlockchainServer) StartMining(w http.ResponseWriter, r *http.Request)
 func(bcs *BlockchainServer) GetAmount(w http.ResponseWriter, r *http.Request) {
 	bc := bcs.GetBlockchain()
 	blockchainAddress := r.URL.Query().Get("blockchain_address")
-
+	if blockchainAddress == "" {
+		utils.WriteJSON(w, http.StatusNotFound, Wrapper{"error": "missing blockchain address"})
+		return
+	}
 	amount := bc.CalculateTotalAmount(blockchainAddress)
 
 	utils.WriteJSON(w, http.StatusOK, Wrapper{"amount": amount})
@@ -144,6 +147,6 @@ func (bsc *BlockchainServer) Run() error {
 	router.HandleFunc("/chain", bsc.GetChainHandler)
 	router.HandleFunc("/mine", bsc.Mine)
 	router.HandleFunc("/mine/start", bsc.StartMining)
-	router.HandleFunc("/amoun", bsc.GetAmount)
+	router.HandleFunc("/amount", bsc.GetAmount)
 	return http.ListenAndServe(fmt.Sprintf(":%d", bsc.port), router)
 }
