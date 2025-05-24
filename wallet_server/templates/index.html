@@ -80,7 +80,7 @@
       }
 
       const reloadBtn = document.getElementById("reload_wallet");
-      reloadBtn.addEventListener("click", reloadWallet);
+      // reloadBtn.addEventListener("click", reloadWallet);
 
       async function reloadWallet() {
         const url = `wallet/amount?blockchain_address=${blockChainAddressEl.value}`;
@@ -90,6 +90,8 @@
         const wallet_amountEl = document.getElementById("wallet_amount");
         wallet_amountEl.innerText = jsonResponse.amount;
       }
+
+      setInterval(reloadWallet, 3000);
     </script>
   </body>
 </html>
