@@ -128,6 +128,7 @@ func (bcs *BlockchainServer) StartMining(w http.ResponseWriter, r *http.Request)
 func(bcs *BlockchainServer) GetAmount(w http.ResponseWriter, r *http.Request) {
 	bc := bcs.GetBlockchain()
 	blockchainAddress := r.URL.Query().Get("blockchain_address")
+
 	if blockchainAddress == "" {
 		utils.WriteJSON(w, http.StatusNotFound, Wrapper{"error": "missing blockchain address"})
 		return

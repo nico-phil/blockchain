@@ -285,3 +285,7 @@ func (t *TransactionRequest) Validate() map[string]string {
 	}
 	return mapError
 }
+
+type AmountResponse struct {
+	Amount float32 `json:"amount"`
+}
