@@ -157,5 +157,3 @@ func (tr *TransactionRequest) ValidTransaction() bool {
 	}
 	return true
 }
-
-

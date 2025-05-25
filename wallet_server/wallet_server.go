@@ -109,16 +109,16 @@ func (ws *WalletServer) CreateTransaction(w http.ResponseWriter, r *http.Request
 
 }
 
-func(ws *WalletServer) GetAmount(w http.ResponseWriter, r *http.Request){
-	
+func (ws *WalletServer) GetAmount(w http.ResponseWriter, r *http.Request) {
+
 	client := http.Client{}
 	endpoint := fmt.Sprintf("%s/amount", ws.gateway)
-	
+
 	blockchainAddress := r.URL.Query().Get("blockchain_address")
 
 	ctx := context.Background()
 	req, _ := http.NewRequestWithContext(ctx, http.MethodGet, endpoint, nil)
-	
+
 	q := req.URL.Query()
 	q.Add("blockchain_address", blockchainAddress)
 	req.URL.RawQuery = q.Encode()
@@ -132,7 +132,7 @@ func(ws *WalletServer) GetAmount(w http.ResponseWriter, r *http.Request){
 
 	if response.StatusCode != http.StatusOK {
 		utils.WriteJSON(w, response.StatusCode, wrapper{"error": "cannot get amount"})
-		return 
+		return
 	}
 
 	var a block.AmountResponse
