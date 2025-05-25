@@ -125,7 +125,7 @@ func (bcs *BlockchainServer) StartMining(w http.ResponseWriter, r *http.Request)
 	utils.WriteJSON(w, http.StatusBadRequest, Wrapper{"message": "start mining"})
 }
 
-func(bcs *BlockchainServer) GetAmount(w http.ResponseWriter, r *http.Request) {
+func (bcs *BlockchainServer) GetAmount(w http.ResponseWriter, r *http.Request) {
 	bc := bcs.GetBlockchain()
 	blockchainAddress := r.URL.Query().Get("blockchain_address")
 

@@ -18,6 +18,12 @@ const (
 	MINING_SENDER     = "THE BLOCKCHAIN"
 	MINING_REWARD     = 1.0
 	MINING_TIMER      = 20
+
+	BLOCKCHAIN_PORT_RANGE_START        = 5001
+	BLOCKCHAIN_PORT_RANGE_END          = 5003
+	NEIGHBOR_IP_RANGE_START            = 0
+	NEIGHTBOR_IP_RANGE_END             = 1
+	BLOCKCHAIN_NEIGTHBOR_SYNC_TIME_SEC = 20
 )
 
 type Block struct {
@@ -70,6 +76,8 @@ type Blockchain struct {
 	blockchainAddress string
 	port              int
 	mu                sync.Mutex
+
+	neighbors []string
 }
 
 func NewBlockchain(blockchainAddress string, port int) *Blockchain {
@@ -79,6 +87,13 @@ func NewBlockchain(blockchainAddress string, port int) *Blockchain {
 	bc.blockchainAddress = blockchainAddress
 	bc.port = port
 	return bc
+}
+
+func (bc *Blockchain) SetNeighbors() {
+	bc.neighbors = utils.FindNeighbors("127.0.0.1", bc.port,
+		NEIGHBOR_IP_RANGE_START, NEIGHTBOR_IP_RANGE_END,
+		BLOCKCHAIN_PORT_RANGE_START,
+		BLOCKCHAIN_PORT_RANGE_END)
 }
 
 func (bc *Blockchain) TransactionPool() []*Transaction {
