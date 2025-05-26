@@ -171,6 +171,13 @@ func (bcs *BlockchainServer) GetAmount(w http.ResponseWriter, r *http.Request) {
 	utils.WriteJSON(w, http.StatusOK, Wrapper{"amount": amount})
 }
 
+func(bcs *BlockchainServer) ConsensusHandler(w http.ResponseWriter, r *http.Request){
+	bc := bcs.GetBlockchain()
+	replaced := bc.ResolveConfilcts()
+
+	utils.WriteJSON(w, http.StatusOK, Wrapper{"resolved": replaced})
+}
+
 func (bcs *BlockchainServer) Run() error {
 	bcs.GetBlockchain().Run()
 	fmt.Println("blockchain_server running on:", bcs.port)
@@ -185,5 +192,6 @@ func (bcs *BlockchainServer) Run() error {
 	router.HandleFunc("/mine", bcs.Mine)
 	router.HandleFunc("/mine/start", bcs.StartMining)
 	router.HandleFunc("/amount", bcs.GetAmount)
+	router.HandleFunc("PUT /consensus", bcs.ConsensusHandler)
 	return http.ListenAndServe(fmt.Sprintf(":%d", bcs.port), router)
 }
