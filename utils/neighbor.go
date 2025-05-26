@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"os"
 	"regexp"
 	"strconv"
 	"time"
@@ -44,4 +45,18 @@ func FindNeighbors(myHost string, myPort, startIp, endIp, startPort, endPort int
 		}
 	}
 	return neighbors
+}
+
+
+func GetHost() string {
+	defaultHost := "127.0.0.1"
+	hostname, err := os.Hostname()
+	if err != nil {
+		return defaultHost
+	}
+	addresses, err := net.LookupHost(hostname)
+	if err != nil {
+		return defaultHost
+	}
+	return addresses[0]
 }

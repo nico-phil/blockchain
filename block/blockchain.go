@@ -78,6 +78,7 @@ type Blockchain struct {
 	mu                sync.Mutex
 
 	neighbors []string
+	muxNeighbors sync.Mutex
 }
 
 func NewBlockchain(blockchainAddress string, port int) *Blockchain {
@@ -90,10 +91,27 @@ func NewBlockchain(blockchainAddress string, port int) *Blockchain {
 }
 
 func (bc *Blockchain) SetNeighbors() {
-	bc.neighbors = utils.FindNeighbors("127.0.0.1", bc.port,
+	bc.neighbors = utils.FindNeighbors(utils.GetHost(), bc.port,
 		NEIGHBOR_IP_RANGE_START, NEIGHTBOR_IP_RANGE_END,
 		BLOCKCHAIN_PORT_RANGE_START,
 		BLOCKCHAIN_PORT_RANGE_END)
+
+		log.Printf("neighbors:%v", bc.neighbors)
+}
+
+func(bc *Blockchain) SyncNeighbors(){
+	bc.muxNeighbors.Lock()
+	defer bc.muxNeighbors.Unlock()
+	bc.SetNeighbors()
+}
+
+func(bc *Blockchain) StartSyncNeighbors(){
+	bc.SyncNeighbors()
+
+	time.AfterFunc(BLOCKCHAIN_NEIGTHBOR_SYNC_TIME_SEC, bc.StartSyncNeighbors)
+}
+func (bc *Blockchain) Run(){
+	bc.StartSyncNeighbors()
 }
 
 func (bc *Blockchain) TransactionPool() []*Transaction {

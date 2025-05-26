@@ -138,16 +138,17 @@ func (bcs *BlockchainServer) GetAmount(w http.ResponseWriter, r *http.Request) {
 	utils.WriteJSON(w, http.StatusOK, Wrapper{"amount": amount})
 }
 
-func (bsc *BlockchainServer) Run() error {
-	fmt.Println("blockchain_server running on:", bsc.port)
+func (bcs *BlockchainServer) Run() error {
+	bcs.GetBlockchain().Run()
+	fmt.Println("blockchain_server running on:", bcs.port)
 	router := http.NewServeMux()
 	// router.HandleFunc("/", HelloWorld)
 
-	router.HandleFunc("/transactions", bsc.GetTransactionHandler)
-	router.HandleFunc("POST /transactions", bsc.TransactionHandler)
-	router.HandleFunc("/chain", bsc.GetChainHandler)
-	router.HandleFunc("/mine", bsc.Mine)
-	router.HandleFunc("/mine/start", bsc.StartMining)
-	router.HandleFunc("/amount", bsc.GetAmount)
-	return http.ListenAndServe(fmt.Sprintf(":%d", bsc.port), router)
+	router.HandleFunc("/transactions", bcs.GetTransactionHandler)
+	router.HandleFunc("POST /transactions", bcs.TransactionHandler)
+	router.HandleFunc("/chain", bcs.GetChainHandler)
+	router.HandleFunc("/mine", bcs.Mine)
+	router.HandleFunc("/mine/start", bcs.StartMining)
+	router.HandleFunc("/amount", bcs.GetAmount)
+	return http.ListenAndServe(fmt.Sprintf(":%d", bcs.port), router)
 }
