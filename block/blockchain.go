@@ -44,6 +44,19 @@ func NewBlock(nonce int, previousHash [32]byte, transactions []*Transaction) *Bl
 	}
 }
 
+func(b *Block) Nonce() int {
+	return b.nonce
+}
+
+func(b *Block) PreviousHash() [32]byte {
+	return b.previousHash
+}
+
+func(b *Block) Transactions() []*Transaction {
+	return b.transactions
+}
+
+
 func (b *Block) Hash() [32]byte {
 	m, _ := json.Marshal(b)
 	return sha256.Sum256(m)
@@ -235,7 +248,6 @@ func (bc *Blockchain) ValidProof(nonce int, previousHash [32]byte, transactions 
 	guessBlock := Block{timeStamp: 0, nonce: nonce, previousHash: previousHash, transactions: transactions}
 	guessBlockStr := fmt.Sprintf("%x", guessBlock.Hash())
 	return guessBlockStr[:difficulty] == zeros
-
 }
 
 func (bc *Blockchain) ProofOfWork() int {
@@ -284,6 +296,23 @@ func (bc *Blockchain) CalculateTotalAmount(blockchainAddress string) float32 {
 	}
 
 	return totalAmount
+}
+
+func(bc *Blockchain) ValidChain(chain []*Block) bool{
+	prevBlock := chain[0]
+	currentIndex := 1
+	for currentIndex < len(chain) {
+		currentBlock := chain[currentIndex]
+		if currentBlock.PreviousHash() != prevBlock.Hash() {
+			return false
+		}
+
+		if !bc.ValidProof(currentBlock.Nonce(), currentBlock.PreviousHash(), currentBlock.Transactions(), MINING_DIFFICULTY){
+			return false
+		}
+	}
+
+	return true
 }
 
 type Transaction struct {
