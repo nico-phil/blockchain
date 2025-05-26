@@ -31,12 +31,14 @@ func FindNeighbors(myHost string, myPort, startIp, endIp, startPort, endPort int
 	if m == nil {
 		return nil
 	}
+
 	prefixHost := m[1]
 	lastIp, _ := strconv.Atoi(m[len(m)-1])
+
 	neighbors := make([]string, 0)
 
-	for port := startPort; port <= endPort; port += 1 {
-		for ip := startIp; ip <= endIp; ip += 1 {
+	for port := startPort; port <= endPort; port++ {
+		for ip := startIp; ip <= endIp; ip++ {
 			guessHost := fmt.Sprintf("%s%d", prefixHost, lastIp+int(ip))
 			guessTarget := fmt.Sprintf("%s:%d", guessHost, port)
 			if guessTarget != address && IsFoundHost(guessHost, port) {
@@ -47,16 +49,19 @@ func FindNeighbors(myHost string, myPort, startIp, endIp, startPort, endPort int
 	return neighbors
 }
 
-
 func GetHost() string {
-	defaultHost := "127.0.0.1"
+	// defaultHost := "127.0.0.1"
 	hostname, err := os.Hostname()
 	if err != nil {
-		return defaultHost
+		return "127.0.0.1"
 	}
-	addresses, err := net.LookupHost(hostname)
+
+	fmt.Println("hostname", hostname)
+	address, err := net.LookupHost(hostname)
 	if err != nil {
-		return defaultHost
+		return "127.0.0.1"
 	}
-	return addresses[0]
+
+	fmt.Println("address", address)
+	return address[2]
 }

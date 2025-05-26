@@ -58,7 +58,6 @@ func (bcs *BlockchainServer) GetChainHandler(w http.ResponseWriter, r *http.Requ
 }
 
 func (bcs *BlockchainServer) TransactionHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("transaction from blochain server")
 	var t block.TransactionRequest
 	err := utils.ReadJSON(r, &t)
 	if err != nil {
@@ -67,12 +66,9 @@ func (bcs *BlockchainServer) TransactionHandler(w http.ResponseWriter, r *http.R
 	}
 
 	if mapError := t.Validate(); len(mapError) > 0 {
-		fmt.Println("not validate")
 		utils.WriteJSON(w, http.StatusUnprocessableEntity, Wrapper{"error": mapError})
 		return
 	}
-
-	fmt.Println("tr_after_validate", *t.RecipientBlochainAddress)
 
 	publicKey := utils.PublickKeyFromString(*t.SenderPublicKey)
 	signature := utils.SignatureFromString(*t.Signature)
@@ -103,7 +99,44 @@ func (bcs *BlockchainServer) GetTransactionHandler(w http.ResponseWriter, r *htt
 	t.Transactions = transactions
 	t.Length = len(transactions)
 
-	utils.WriteJSON(w, http.StatusOK, Wrapper{"transaction": t.Transactions, "length": t.Length})
+	utils.WriteJSON(w, http.StatusOK, Wrapper{"transactions": t.Transactions, "length": t.Length})
+}
+
+func (bcs *BlockchainServer) UpdateTransaction(w http.ResponseWriter, r *http.Request) {
+	var t block.TransactionRequest
+	err := utils.ReadJSON(r, &t)
+	if err != nil {
+		utils.WriteJSON(w, http.StatusBadRequest, Wrapper{"error": err.Error()})
+		return
+	}
+
+	if mapError := t.Validate(); len(mapError) > 0 {
+		utils.WriteJSON(w, http.StatusUnprocessableEntity, Wrapper{"error": mapError})
+		return
+	}
+
+	publicKey := utils.PublickKeyFromString(*t.SenderPublicKey)
+	signature := utils.SignatureFromString(*t.Signature)
+
+	bc := bcs.GetBlockchain()
+
+	isUpdated := bc.AddTransaction(*t.SenderBlockchainAddress, *t.RecipientBlochainAddress,
+		*t.Value, publicKey, signature)
+	fmt.Println("iscreated:", isUpdated)
+
+	if !isUpdated {
+		utils.WriteJSON(w, http.StatusBadRequest, Wrapper{"transaction": "transaction is not updated"})
+		return
+	}
+
+	utils.WriteJSON(w, http.StatusOK, Wrapper{"transaction": t})
+}
+
+func (bcs *BlockchainServer) ClearTransaction(w http.ResponseWriter, r *http.Request) {
+	bc := bcs.GetBlockchain()
+	bc.ClearTransactionPool()
+
+	utils.WriteJSON(w, http.StatusOK, Wrapper{"message": "transaction pool deleted"})
 }
 
 func (bcs *BlockchainServer) Mine(w http.ResponseWriter, r *http.Request) {
