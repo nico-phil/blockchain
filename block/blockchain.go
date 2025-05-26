@@ -132,6 +132,13 @@ func (bc *Blockchain) CreateBlock(nonce int, previousHash [32]byte) *Block {
 	b := NewBlock(nonce, previousHash, bc.transactionPool)
 	bc.chain = append(bc.chain, b)
 	bc.transactionPool = []*Transaction{}
+	for _, n := range bc.neighbors {
+		endpoint := fmt.Sprintf("http://%s/transactions", n)
+		client := http.Client{}
+		req, _ := http.NewRequest(http.MethodDelete, endpoint, nil)
+		resp, _ := client.Do(req)
+		fmt.Printf("resp:%v", resp)
+	}
 	return b
 }
 

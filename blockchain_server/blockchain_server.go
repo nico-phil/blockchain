@@ -102,7 +102,7 @@ func (bcs *BlockchainServer) GetTransactionHandler(w http.ResponseWriter, r *htt
 	utils.WriteJSON(w, http.StatusOK, Wrapper{"transactions": t.Transactions, "length": t.Length})
 }
 
-func (bcs *BlockchainServer) UpdateTransaction(w http.ResponseWriter, r *http.Request) {
+func (bcs *BlockchainServer) UpdateTransactionHandler(w http.ResponseWriter, r *http.Request) {
 	var t block.TransactionRequest
 	err := utils.ReadJSON(r, &t)
 	if err != nil {
@@ -132,7 +132,7 @@ func (bcs *BlockchainServer) UpdateTransaction(w http.ResponseWriter, r *http.Re
 	utils.WriteJSON(w, http.StatusOK, Wrapper{"transaction": t})
 }
 
-func (bcs *BlockchainServer) ClearTransaction(w http.ResponseWriter, r *http.Request) {
+func (bcs *BlockchainServer) ClearTransactionHandler(w http.ResponseWriter, r *http.Request) {
 	bc := bcs.GetBlockchain()
 	bc.ClearTransactionPool()
 
@@ -177,8 +177,10 @@ func (bcs *BlockchainServer) Run() error {
 	router := http.NewServeMux()
 	// router.HandleFunc("/", HelloWorld)
 
-	router.HandleFunc("/transactions", bcs.GetTransactionHandler)
 	router.HandleFunc("POST /transactions", bcs.TransactionHandler)
+	router.HandleFunc("/transactions", bcs.GetTransactionHandler)
+	router.HandleFunc("PUT /transactions", bcs.UpdateTransactionHandler)
+	router.HandleFunc("DELETE /transactions", bcs.ClearTransactionHandler)
 	router.HandleFunc("/chain", bcs.GetChainHandler)
 	router.HandleFunc("/mine", bcs.Mine)
 	router.HandleFunc("/mine/start", bcs.StartMining)
