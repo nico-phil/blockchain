@@ -23,7 +23,7 @@ const (
 	MINING_TIMER      = 20
 
 	BLOCKCHAIN_PORT_RANGE_START        = 5001
-	BLOCKCHAIN_PORT_RANGE_END          = 5004
+	BLOCKCHAIN_PORT_RANGE_END          = 5003
 	NEIGHBOR_IP_RANGE_START            = 0
 	NEIGHTBOR_IP_RANGE_END             = 1
 	BLOCKCHAIN_NEIGTHBOR_SYNC_TIME_SEC = 20
@@ -156,6 +156,7 @@ func (bc *Blockchain) StartSyncNeighbors() {
 }
 func (bc *Blockchain) Run() {
 	bc.StartSyncNeighbors()
+	bc.ResolveConfilcts()
 }
 
 func (bc *Blockchain) TransactionPool() []*Transaction {
@@ -214,7 +215,7 @@ func (bc *Blockchain) Print() {
 
 func (bc *Blockchain) CreateTransaction(sender, recipient string, value float32, senderPublicKey *ecdsa.PublicKey, s *utils.Signature) bool {
 	isTransacted := bc.AddTransaction(sender, recipient, value, senderPublicKey, s)
-
+	client := http.Client{}
 	if isTransacted {
 		for _, n := range bc.neighbors {
 			publicKeyStr := fmt.Sprintf("%064x%064x", senderPublicKey.X.Bytes(), senderPublicKey.Y.Bytes())
@@ -226,11 +227,10 @@ func (bc *Blockchain) CreateTransaction(sender, recipient string, value float32,
 				Value:                    &value,
 				Signature:                &signatureStr,
 			}
-
 			m, _ := json.Marshal(tr)
 			endpoint := fmt.Sprintf("http://%s/transactions", n)
 			buf := bytes.NewBuffer(m)
-			client := http.Client{}
+			
 			req, _ := http.NewRequest(http.MethodPut, endpoint, buf)
 			resp, _ := client.Do(req)
 			fmt.Printf("resp:%v", resp)
@@ -253,11 +253,11 @@ func (bc *Blockchain) AddTransaction(sender, recipient string, value float32, se
 		return true
 	}
 
-	// if bc.VerifyTransaction(senderPublicKey, s, t) {
-	// 	if bc.CalculateTotalAmount(sender) < value{
-	// 		log.Println("ERROR:", "Not wnougth balance in wallet")
-	// 		return false
-	// 	}
+	// if bc.VerifyTransactionSignature(senderPublicKey, s, t) {
+	// 	// if bc.CalculateTotalAmount(sender) < value{
+	// 	// 	log.Println("ERROR:", "Not wnougth balance in wallet")
+	// 	// 	return false
+	// 	// }
 	// 	bc.transactionPool = append(bc.transactionPool, t)
 	// 	return true
 	// }
@@ -271,11 +271,11 @@ func (bc *Blockchain) AddTransaction(sender, recipient string, value float32, se
 	// return false
 }
 
-func (bc *Blockchain) VerifyTransaction(senderPublicKey *ecdsa.PublicKey, s *utils.Signature, t *Transaction) bool {
+func (bc *Blockchain) VerifyTransactionSignature(
+	senderPublicKey *ecdsa.PublicKey, s *utils.Signature, t *Transaction) bool {
 	m, _ := json.Marshal(t)
 	h := sha256.Sum256([]byte(m))
-	v := ecdsa.Verify(senderPublicKey, h[:], s.R, s.S)
-	return v
+	return ecdsa.Verify(senderPublicKey, h[:], s.R, s.S)
 }
 
 func (bc *Blockchain) Copytransactions() []*Transaction {
@@ -317,6 +317,14 @@ func (bc *Blockchain) Mining() bool {
 	previousHash := bc.LasBlock().previousHash
 	bc.CreateBlock(nonce, previousHash)
 	log.Println("action=MINING", "status=success")
+	for _, n := range bc.neighbors {
+		endpoint := fmt.Sprintf("http://%s/consensus", n)
+		client := &http.Client{}
+		req, _ := http.NewRequest(http.MethodPut, endpoint, nil)
+		response, _ := client.Do(req)
+		fmt.Printf("%v", response)
+
+	}
 	return true
 }
 
@@ -351,9 +359,9 @@ func(bc *Blockchain) ValidChain(chain []*Block) bool{
 			return false
 		}
 
-		if !bc.ValidProof(currentBlock.Nonce(), currentBlock.PreviousHash(), currentBlock.Transactions(), MINING_DIFFICULTY){
-			return false
-		}
+		// if !bc.ValidProof(currentBlock.Nonce(), currentBlock.PreviousHash(), currentBlock.Transactions(), MINING_DIFFICULTY){
+		// 	return false
+		// }
 
 		prevBlock = currentBlock
 		currentIndex++
@@ -373,7 +381,8 @@ func(bc *Blockchain) ResolveConfilcts() bool{
 			_ = json.NewDecoder(response.Body).Decode(&bcResp)
 			
 			chain := bcResp.Chain()
-			if len(chain) > maxLength && bc.ValidChain(chain) {
+			//&& bc.ValidChain(chain)
+			if len(chain) > maxLength  {
 				longuestChain = chain
 				maxLength = len(chain)
 			}
